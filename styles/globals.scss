@@ -1,0 +1,69 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: #FBFBFB;
+  font-family: PP Neue Montreal -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.wallet-adapter-button {
+  background-color: lightdark;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.wallet-adapter-modal {
+  border: solid 1px lightgray;
+  position: absolute;
+  top: 130px;
+  border-radius: 24px;
+  padding: 24px;
+  background-color: white;
+  width: 40%;
+  min-width: 400px;
+  left: 30%;
+}
+
+.wallet-adapter-modal-button-close {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.wallet-adapter-button {
+  display: flex;
+  align-items: center;
+  min-width: 180px;
+
+  span {
+    display: inline-block;
+    padding-left: 4px;
+  }
+
+  .wallet-adapter-button-start-icon {
+    padding-right: 4px;
+    img {
+      height: 35px;
+    }
+  }
+}
+
+.wallet-adapter-modal-list {
+  list-style: none;
+
+  li {
+    padding: 8px 0;
+  }
+}
