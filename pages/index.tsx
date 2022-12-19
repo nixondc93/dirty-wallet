@@ -16,7 +16,7 @@ export default function Home() {
       <Banner />
       <Body>
         <LeftPanel>
-          <Image src="/wallet-icon.svg" alt="wallet icon" width={329} height={248} />
+          <Image priority src="/wallet-icon.svg" alt="wallet icon" width={329} height={248} />
           <Header>Acme Inc. Wallet</Header>
           <SubHeader>Send Solana to your friends!</SubHeader>
         </LeftPanel>
@@ -36,6 +36,7 @@ const Body = styled.div`
   padding: 80px;
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
 `;
 
 const RightPanel = styled.div`
@@ -44,6 +45,7 @@ const RightPanel = styled.div`
 
 const LeftPanel = styled.div`
   min-width: 400px;
+  margin: 48px;
 `;
 
 const Header = styled.h1`

@@ -30,7 +30,7 @@ const Container = styled.div`
   align-items: center;
   padding: 8px 24px;
   border-radius: 40px;
-  width: 100$;
+  min-width: 400px;
 `;
 
 const LogoContainer = styled.div`

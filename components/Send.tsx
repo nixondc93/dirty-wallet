@@ -1,20 +1,21 @@
 import styled from "@emotion/styled";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useToast } from '@chakra-ui/react'
+import { useEffect, useState } from "react";
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
+import { Keypair, SystemProgram, Transaction, TransactionError } from "@solana/web3.js";
 
 const lamportCoversionRate = 1000000000;
 
 function Send() {
   const [value, setValue] = useState<string>("0");
   const [balance, setBalance] = useState<number>();
-  const [blockTime, setBlockTime] = useState<number>();
+  const [blockTime, setBlockTime] = useState<number | null>(null);
   const [fee, setFee] = useState<number>()
-  const [pendingTransaction, setPendingTransaction] = useState<boolean>(false);
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
+  const toast = useToast()
 
   const fetchBalance = async () => {
     if(publicKey) {
@@ -23,10 +24,21 @@ function Send() {
     }
   };
 
-  const fetchBlockTime = async () => {
+  const fetchBlockConfirmationTime = async () => {
     if(publicKey) {
-      const result = await connection.getBalance(publicKey);
-      setBlockTime(result)
+      const confirmedSlot = await connection.getSlot('confirmed');
+      const [block1, block2] = await Promise.all([
+        connection.getBlockTime(confirmedSlot),
+        connection.getBlockTime(confirmedSlot - 1)
+      ]);
+      
+      if( block1 && block2){
+        const dateX = new Date(block1 * 1000);
+        const dateY = new Date(block2 * 1000);
+        const result = dateX.getTime() - dateY.getTime(); 
+        setBlockTime(result);
+      }
+
     }
   }
 
@@ -53,7 +65,7 @@ function Send() {
 
   useEffect(() => { 
     fetchBalance();
-    fetchBlockTime();
+    fetchBlockConfirmationTime();
     fetchFee();
   }, [connection, publicKey])
 
@@ -63,7 +75,6 @@ function Send() {
 
   const handleOnSend = async () => {
     if (!publicKey) throw new WalletNotConnectedError();
-    setPendingTransaction(true);
 
     try {
       const lamports = parseFloat(value) * lamportCoversionRate;
@@ -88,13 +99,58 @@ function Send() {
         
       const signature = await sendTransaction(transaction, connection, { minContextSlot });
       
-      await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-      fetchBalance();
+      const confirmation = await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+
+      if (confirmation.value.err) {
+        const error = confirmation.value.err;
+        if (typeof error === "string"){
+          toast({
+            title: 'An Error ocurred:',
+            description: error,
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          })
+        } else {
+          toast({
+            title: 'An Error ocurred:',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          })
+        }
+      } else {
+        
+        fetchBalance();
+        toast({
+          title: 'Transaction send successfully',
+          description: <a href={`https://solscan.io/tx/${signature}?cluster=devnet`}>See on SolScan</a>,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        })
+        setValue("0")
+
+      }
+
     } catch (error) {
-      
+      if (typeof error === "string") {
+        toast({
+          title: 'An Error ocurred:',
+          description: error,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'An Error ocurred',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        })
+      }
     }
-    setValue("0")
-    setPendingTransaction(false)
   }
 
   return (
@@ -136,7 +192,7 @@ function Send() {
       </PaddedRow>
       <PaddedRow>
         <GrayText>Confirmation time</GrayText>
-        <span>{blockTime || "--"}</span>
+        <span>{ typeof blockTime === "number" ? `~${blockTime / 1000} second${blockTime / 1000 !== 1 ? 's' : ''}` : "--"}</span>
       </PaddedRow>
       <PaddedRow>
         <GrayText>Network fee</GrayText>
@@ -150,6 +206,9 @@ const Container = styled.div`
   width: 100%;
 `;
 
+const StatusMessage = styled.span`
+
+`;
 
 const Flex = styled.div`
   display: flex;
@@ -186,6 +245,7 @@ const Balance = styled.div`
   padding: 8px;
   border-radius: 24px;
   margin-bottom: 32px;
+  display: flex;
 `;
 
 const SendAmountContainer = styled.div`
@@ -241,7 +301,8 @@ const MaxButton = styled.button`
   color: #B88454;
   width: 47px;
   height: 22px;
-
+  display: flex;
+  align-items: center;
   background: rgba(184, 132, 84, 0.1);
   border-radius: 25px;
 `;

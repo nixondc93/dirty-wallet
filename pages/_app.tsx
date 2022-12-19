@@ -6,6 +6,7 @@ import { BraveWalletAdapter, PhantomWalletAdapter } from '@solana/wallet-adapter
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
+import { ChakraProvider } from '@chakra-ui/react';
 
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -20,13 +21,15 @@ export default function App({ Component, pageProps }: AppProps) {
   );
 
   return (
-    <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets} autoConnect>
-            <WalletModalProvider>
-                <Component {...pageProps} />
-            </WalletModalProvider>
-        </WalletProvider>
-    </ConnectionProvider>
+    <ChakraProvider>
+        <ConnectionProvider endpoint={endpoint}>
+            <WalletProvider wallets={wallets} autoConnect>
+                <WalletModalProvider>
+                    <Component {...pageProps} />
+                </WalletModalProvider>
+            </WalletProvider>
+        </ConnectionProvider>
+    </ChakraProvider>
   );
 }
 
